@@ -18,6 +18,7 @@ Requisitos:
 
 - Testado no Debian 10/11;
 - Necessário os pacotes dialog e ipcalc
+- 
   Obs: O próprio script verifica se os pacotes estão instalados e força a instalação das dependências.
 
 Imagens:
