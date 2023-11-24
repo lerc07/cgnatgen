@@ -28,6 +28,8 @@ Imagens:
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/ae231b16-cbe0-4a53-9198-7f633b63e2cb)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/fdac13f2-6528-49dc-8530-7a3e9ffe5f74)
 
+Após a importação completa do Script.
+![image](https://github.com/lerc07/cgnatgen/assets/151892038/3c1c620c-5388-42ca-a3cc-cf19239fd178)
 
 Realizado algumas modificações das Dialogs para melhor visualisar na shell.
 
