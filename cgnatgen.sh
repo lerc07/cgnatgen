@@ -1,10 +1,12 @@
 #!/bin/bash
-# Desenvolvido por Luis Ramalho + ChatGPT 3.5
-# Projeto Original cgnatgen por Daniel Hoisel
+# Desenvolvido por Luis Ramalho + ChatGPT
+# Projeto Original de Daniel Hoisel
 # Licenciado sob a GPL 3.0
 versao="1.0"
 autor="LeRc"
 veros="RouterOS v6.x"
+titulo1="# GERADOR DE CGNAT - Autor: $autor - Versão: $versao"
+titulo2="[ CGNATGen - Gerador de Script CGNAT ]"
 
 # Função para verificar e instalar o pacote se estiver ausente
 verificar_e_instalar_pacote() {
@@ -36,7 +38,7 @@ else
 fi
 
 # Inicio dos Dialogos
-	entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - (NO NETMAP)" \
+	entrada=$( dialog --stdout --backtitle "$titulo1" --title "CGNATGEN - (NO NETMAP)" \
     --inputbox "$aviso
                 Para definir o nome do arquivo use Ex.: ./cgnatgen.sh arquivo.rsc
                 Caso contratio, será gerado como mk-cgnat.rsc
@@ -45,9 +47,9 @@ fi
 
                 Informe o bloco privado/máscara. Ex.: 100.64.0.0/22" 0 0 "100.64.0.0/22")
 	if which ipcalc >/dev/null; then
-        ipcalc -cbn $entrada | grep Network | cut -f2 -d: | grep $entrada || { dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - Gerador de Script CGNAT" --msgbox "Endereço IP ou de rede inválidos" 0 0; exit; }
+        ipcalc -cbn $entrada | grep Network | cut -f2 -d: | grep $entrada || { dialog --stdout --backtitle "$titulo1" --title "$titulo2" --msgbox "Endereço IP ou de rede inválidos" 0 0; exit; }
     else
-        dialog --stdout --sleep 2 --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - Gerador de Script CGNAT" --infobox "ipcalc não está instalado. A validação não foi feita" 0 0
+        dialog --stdout --sleep 2 --backtitle "$titulo1" --title "$titulo2" --infobox "ipcalc não está instalado. A validação não foi feita" 0 0
     fi
     IFS='/' read -r ipprivado mascaraprivado <<<"$entrada"
     if [[ $mascaraprivado -gt 25 ]]
@@ -58,8 +60,8 @@ then
     fi
 
 # Adicionando diálogo com radiolist para perguntar se deseja informar o nome da interface de uplink
-escolha_interface=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-    --title "CGNATGEN - Gerador de Script CGNAT" \
+escolha_interface=$(dialog --stdout --backtitle "$titulo1" \
+    --title "$titulo2" \
     --radiolist "
 	Deseja informar o nome da interface de uplink?" 8 55 0 \
     "Sim" "Sim" ON \
@@ -68,8 +70,8 @@ escolha_interface=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $au
 # Verificar a escolha do usuário
 if [[ $escolha_interface == "Sim" ]]; then
     # Se o usuário escolheu Sim, então pedir o nome da interface
-    nome_interface=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-        --title "CGNATGEN - Gerador de Script CGNAT" \
+    nome_interface=$(dialog --stdout --backtitle "$titulo1" \
+        --title "$titulo2" \
         --inputbox "
 		Digite o nome da interface de uplink:" 10 45 "sfp.sfpplus1")
 
@@ -88,8 +90,8 @@ else
 fi
 
 # Diálogo para adicionar IP de enlace na interface informada
-escolha_ip_enlace=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-    --title "CGNATGEN - Gerador de Script CGNAT" \
+escolha_ip_enlace=$(dialog --stdout --backtitle "$titulo1" \
+    --title "$titulo2" \
     --radiolist "
     	Deseja criar um enlace entre o CGNAT e o Concentrador?
 	O IP usado sera: 10.10.10.1/30
@@ -101,8 +103,8 @@ escolha_ip_enlace=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $au
 # Verificar a escolha do usuário e realizar as ações correspondentes
 if [[ $escolha_ip_enlace == "Sim" ]]; then
     # Se o usuário escolheu Sim, então pedir o nome da interface de enlace
-    nome_int_enlace=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-        --title "CGNATGEN - Gerador de Script CGNAT" \
+    nome_int_enlace=$(dialog --stdout --backtitle "$titulo1" \
+        --title "$titulo2" \
         --inputbox "
         Digite o nome da interface de enlace:
 		Ex: sfp.sfpplus2
@@ -118,8 +120,8 @@ fi
 fi
 
 # Adicionando diálogo com checkboxes para ativar diferentes regras
-opcoes_regras=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-    --title "CGNATGEN - Gerador de Script CGNAT" \
+opcoes_regras=$(dialog --stdout --backtitle "$titulo1" \
+    --title "$titulo2" \
     --checklist "
 	Escolha as regras a serem ativadas:" 8 68 0 \
     "Ativar No Track (RAW)" "Ativar No Track (RAW)" ON \
@@ -152,8 +154,8 @@ if [[ $opcoes_regras == *"Ativar FastTrack Connection"* ]]; then
 fi
 
 # Adicionando diálogo com radiolist para perguntar se deseja criar uma address-list para destinos fora do CGNAT
-escolha_address_list=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-    --title "CGNATGEN - Gerador de Script CGNAT" \
+escolha_address_list=$(dialog --stdout --backtitle "$titulo1" \
+    --title "$titulo2" \
     --radiolist "
 	Deseja criar uma address-list com destinos fora do CGNAT?" 8 65 0 \
     "Sim" "Sim" ON \
@@ -165,8 +167,8 @@ if [[ $escolha_address_list == "Sim" ]]; then
     nome_lista="FORA-CGNAT" # Nome pré-definido para a lista
 
     # Adicionar diálogo para preencher o nome da lista
-    nome_lista=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-        --title "CGNATGEN - Gerador de Script CGNAT" \
+    nome_lista=$(dialog --stdout --backtitle "$titulo1" \
+        --title "$titulo2" \
         --inputbox "
 		Digite o nome da lista (padrão: FORA-CGNAT):" 8 60 "$nome_lista")
 
@@ -188,8 +190,8 @@ else
 fi
 
 #  FIM
-    entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
-                --title "CGNATGEN - Gerador de Script CGNAT" \
+    entrada=$( dialog --stdout --backtitle "$titulo1" \
+                --title "$titulo2" \
                 --inputbox "
                 PORTAS X BLOCO PÚBLICO NECESSÁRIO
                 -----------------------------------
@@ -224,9 +226,9 @@ fi
     for blocopublico in ${entrada[*]} 
     do
         if which ipcalc >/dev/null; then
-            ipcalc -cbn $blocopublico | grep Network | cut -f2 -d: | grep $blocopublico || { dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - Gerador de Script CGNAT" --infobox "Endereço IP ou de rede inválidos" 0 0 ; exit; }
+            ipcalc -cbn $blocopublico | grep Network | cut -f2 -d: | grep $blocopublico || { dialog --stdout --backtitle "$titulo1" --title "$titulo2" --infobox "Endereço IP ou de rede inválidos" 0 0 ; exit; }
         else
-            dialog --stdout --sleep 2 --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - Gerador de Script CGNAT" --infobox "ipcalc não está instalado. A validação não foi feita" 0 0
+            dialog --stdout --sleep 2 --backtitle "$titulo1" --title "$titulo2" --infobox "ipcalc não está instalado. A validação não foi feita" 0 0
         fi
         IFS='/' read -r ippublico mascarapublico <<<"$blocopublico"
         quantidadepublico=$((2**$((32-$mascarapublico))))
@@ -240,8 +242,8 @@ fi
         fi
         dialog \
                     --cr-wrap \
-                    --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao"   \
-                    --title "CGNATGEN - Gerador de Script CGNAT" \
+                    --backtitle "$titulo1"   \
+                    --title "$titulo2" \
                     --infobox "
                 Gerando o arquivo [ $arquivo ]
                 Quantidade de IPs públicos: $quantidadetotalpublico
