@@ -5,7 +5,6 @@
 versao="1.0"
 autor="LeRc"
 
-
 # Função para verificar e instalar o pacote se estiver ausente
 verificar_e_instalar_pacote() {
     if ! dpkg -l "$1" &>/dev/null; then
@@ -15,10 +14,8 @@ verificar_e_instalar_pacote() {
     fi
 }
 
-# Verificar e instalar dialog
+# Verificar e instalar dialog e ipcalc
 verificar_e_instalar_pacote "dialog"
-
-# Verificar e instalar ipcalc
 verificar_e_instalar_pacote "ipcalc"
 
 # Verificar se dialog e ipcalc estão instalados antes de continuar
@@ -26,8 +23,7 @@ if ! dpkg -l "dialog" &>/dev/null || ! dpkg -l "ipcalc" &>/dev/null; then
     echo "Pacotes necessários não estão instalados. Abortando o script."
     exit 1
 fi
-
-
+# Define o nome do arquivo
 if [[ $1 ]]
 then
     arquivo=$1
@@ -35,7 +31,7 @@ else
     arquivo="mk-cgnat.rsc"
 fi
 
-# Inicio dos Dialogos
+# Inicio das Dialogs
 	entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - (NO NETMAP)" \
     --inputbox "$aviso
                 Para definir o nome do arquivo use Ex.: ./cgnatgen.sh arquivo.rsc
@@ -57,7 +53,7 @@ then
         exit
     fi
 
-# Adicionando diálogo com radiolist para perguntar se deseja informar o nome da interface de uplink
+# Dialog para informar o nome da interface de uplink
 escolha_interface=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --radiolist "
@@ -88,7 +84,7 @@ else
 fi
 
 
-# Adicionando diálogo com checkboxes para ativar diferentes regras
+# Diálogo para ativar diferentes regras
 opcoes_regras=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --checklist "
@@ -96,8 +92,6 @@ opcoes_regras=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor 
     "Ativar No Track (RAW)" "Ativar No Track (RAW)" ON \
     "Ativar Blackhole" "Ativar Blackhole" ON \
     "Ativar FastTrack Connection" "Ativar FastTrack Connection" ON)
-
-# Verificando as opções selecionadas
 if [[ $opcoes_regras == *"Ativar No Track (RAW)"* ]]; then
     echo "# NO TRACK" >> $arquivo
 	echo "/ip firewall raw " >> $arquivo 
@@ -112,7 +106,6 @@ if [[ $opcoes_regras == *"Ativar Blackhole"* ]]; then
     echo "add comment=\"CGNAT Blackhole\" distance=1 dst-address=$entrada type=blackhole" >> $arquivo
     echo "" >> $arquivo
 fi
-
 if [[ $opcoes_regras == *"Ativar FastTrack Connection"* ]]; then
     echo "# ATIVA O FASTTRACK" >> $arquivo
 	echo "# AVISO: Não usar FastTrack na Routerboard que faz o controle de banda/QoS." >> $arquivo
@@ -122,7 +115,7 @@ if [[ $opcoes_regras == *"Ativar FastTrack Connection"* ]]; then
     echo "" >> $arquivo
 fi
 
-# Adicionando diálogo com radiolist para perguntar se deseja criar uma address-list para destinos fora do CGNAT
+# Dialog para criar uma address-list para destinos fora do CGNAT
 escolha_address_list=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --radiolist "
@@ -135,7 +128,7 @@ if [[ $escolha_address_list == "Sim" ]]; then
     # Se o usuário escolheu Sim, então continuar e pedir o nome da lista
     nome_lista="FORA-CGNAT" # Nome pré-definido para a lista
 
-    # Adicionar diálogo para preencher o nome da lista
+    # Diálogo para preencher o nome da lista
     nome_lista=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
         --title "CGNATGEN - Gerador de Script CGNAT" \
         --inputbox "
@@ -157,9 +150,7 @@ else
 	echo "add chain=srcnat action=jump jump-target=CGNAT src-address=$ipprivado/$mascaraprivado comment=\"CGNATGEN - Do bloco privado: $ipprivado/$mascaraprivado para o(s) bloco(s) publico(s): $entrada - Desative essa regra para desativar o CGNAT\"" >> $arquivo 
 	echo "" >> $arquivo
 fi
-
-
-#  FIM
+#  Dialog de insersão do IP Publico e calculos
     entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
                 --title "CGNATGEN - Gerador de Script CGNAT" \
                 --inputbox "
