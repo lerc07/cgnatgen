@@ -18,7 +18,10 @@ A ferramenta foi adaptada para uma necessidade pessoal, disponibilizando e flexi
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/573d1104-5def-4450-8d17-29d2741b3e49)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/a3b19a36-ca11-49ed-808e-c3836c07abd6)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/22d4828a-7f5d-4539-b083-1f6f08967325)
-![image](https://github.com/lerc07/cgnatgen/assets/151892038/65b37e76-401a-4606-ab4c-fbc2b19ab390)
+![image](https://github.com/lerc07/cgnatgen/assets/151892038/4f72bc9a-fcec-4843-8e20-5b407375b052)
+![image](https://github.com/lerc07/cgnatgen/assets/151892038/ae231b16-cbe0-4a53-9198-7f633b63e2cb)
+![image](https://github.com/lerc07/cgnatgen/assets/151892038/fdac13f2-6528-49dc-8530-7a3e9ffe5f74)
+
 
 Realizado algumas modificações das Dialogs para melhor visualisar na shell.
 
