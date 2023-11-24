@@ -1,7 +1,7 @@
 # cgnatgen
 Gerador de Script de CGNAT em SRC-NAT para RouterOS baseado na Wiki original da Mikrotik (Não usa NETMAP)
-
 https://help.mikrotik.com/docs/display/ROS/NAT
+---------------------------------------------
 
 A ferramenta foi adaptada para uma necessidade pessoal, disponibilizando e flexibilizando a inserção de novas funções dentro do script, tais como:
 
@@ -12,6 +12,9 @@ A ferramenta foi adaptada para uma necessidade pessoal, disponibilizando e flexi
 - Adicionado a opção de configurar um ip de enlace entre o CGNAT/Concentrador (10.10.10.1/30)
 
 O arquivo gerado deverá ser enviado e importado para o RouterOS.
+
+Imagens:
+---------------------------------------------
 
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/d040d3be-9629-4b00-bc98-b84c430f14f3)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/f9c09980-edab-42e0-a3d7-d25842bad82f)
