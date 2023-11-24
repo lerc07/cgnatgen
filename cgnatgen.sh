@@ -1,9 +1,10 @@
 #!/bin/bash
-# Desenvolvido por Luis Ramalho + ChatGPT
-# Projeto Original de Daniel Hoisel
+# Desenvolvido por Luis Ramalho + ChatGPT 3.5
+# Projeto Original cgnatgen por Daniel Hoisel
 # Licenciado sob a GPL 3.0
 versao="1.0"
 autor="LeRc"
+veros="RouterOS v6.x"
 
 # Função para verificar e instalar o pacote se estiver ausente
 verificar_e_instalar_pacote() {
@@ -14,8 +15,10 @@ verificar_e_instalar_pacote() {
     fi
 }
 
-# Verificar e instalar dialog e ipcalc
+# Verificar e instalar dialog
 verificar_e_instalar_pacote "dialog"
+
+# Verificar e instalar ipcalc
 verificar_e_instalar_pacote "ipcalc"
 
 # Verificar se dialog e ipcalc estão instalados antes de continuar
@@ -23,7 +26,8 @@ if ! dpkg -l "dialog" &>/dev/null || ! dpkg -l "ipcalc" &>/dev/null; then
     echo "Pacotes necessários não estão instalados. Abortando o script."
     exit 1
 fi
-# Define o nome do arquivo
+
+
 if [[ $1 ]]
 then
     arquivo=$1
@@ -31,7 +35,7 @@ else
     arquivo="mk-cgnat.rsc"
 fi
 
-# Inicio das Dialogs
+# Inicio dos Dialogos
 	entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" --title "CGNATGEN - (NO NETMAP)" \
     --inputbox "$aviso
                 Para definir o nome do arquivo use Ex.: ./cgnatgen.sh arquivo.rsc
@@ -53,7 +57,7 @@ then
         exit
     fi
 
-# Dialog para informar o nome da interface de uplink
+# Adicionando diálogo com radiolist para perguntar se deseja informar o nome da interface de uplink
 escolha_interface=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --radiolist "
@@ -83,8 +87,37 @@ else
     echo ""
 fi
 
+# Diálogo para adicionar IP de enlace na interface informada
+escolha_ip_enlace=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
+    --title "CGNATGEN - Gerador de Script CGNAT" \
+    --radiolist "
+    	Deseja criar um enlace entre o CGNAT e o Concentrador?
+	O IP usado sera: 10.10.10.1/30
+	Essa é a interface de comunicação entre o seu CGNAT e o concentrador.
+" 10 75 0 \
+    "Sim" "Sim" ON \
+    "Não" "Não" OFF)
 
-# Diálogo para ativar diferentes regras
+# Verificar a escolha do usuário e realizar as ações correspondentes
+if [[ $escolha_ip_enlace == "Sim" ]]; then
+    # Se o usuário escolheu Sim, então pedir o nome da interface de enlace
+    nome_int_enlace=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
+        --title "CGNATGEN - Gerador de Script CGNAT" \
+        --inputbox "
+        Digite o nome da interface de enlace:
+		Ex: sfp.sfpplus2
+		" 10 45 "sfp.sfpplus2")
+
+    # Verificar se o usuário inseriu um nome para a interface
+    if [[ -n $nome_int_enlace ]]; then
+        echo "# IP de Enlace entre o CGNAT/Concentrador" >> $arquivo
+	echo "/ip address" >> $arquivo
+	echo "add interface=$nome_int_enlace address=10.10.10.1/30 disabled=no comment=\"IP de Enlace com o Concentrador - CGNATGEN\"" >> $arquivo
+        echo "" >> $arquivo
+fi
+fi
+
+# Adicionando diálogo com checkboxes para ativar diferentes regras
 opcoes_regras=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --checklist "
@@ -92,6 +125,8 @@ opcoes_regras=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor 
     "Ativar No Track (RAW)" "Ativar No Track (RAW)" ON \
     "Ativar Blackhole" "Ativar Blackhole" ON \
     "Ativar FastTrack Connection" "Ativar FastTrack Connection" ON)
+
+# Verificando as opções selecionadas
 if [[ $opcoes_regras == *"Ativar No Track (RAW)"* ]]; then
     echo "# NO TRACK" >> $arquivo
 	echo "/ip firewall raw " >> $arquivo 
@@ -106,6 +141,7 @@ if [[ $opcoes_regras == *"Ativar Blackhole"* ]]; then
     echo "add comment=\"CGNAT Blackhole\" distance=1 dst-address=$entrada type=blackhole" >> $arquivo
     echo "" >> $arquivo
 fi
+
 if [[ $opcoes_regras == *"Ativar FastTrack Connection"* ]]; then
     echo "# ATIVA O FASTTRACK" >> $arquivo
 	echo "# AVISO: Não usar FastTrack na Routerboard que faz o controle de banda/QoS." >> $arquivo
@@ -115,7 +151,7 @@ if [[ $opcoes_regras == *"Ativar FastTrack Connection"* ]]; then
     echo "" >> $arquivo
 fi
 
-# Dialog para criar uma address-list para destinos fora do CGNAT
+# Adicionando diálogo com radiolist para perguntar se deseja criar uma address-list para destinos fora do CGNAT
 escolha_address_list=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
     --title "CGNATGEN - Gerador de Script CGNAT" \
     --radiolist "
@@ -128,7 +164,7 @@ if [[ $escolha_address_list == "Sim" ]]; then
     # Se o usuário escolheu Sim, então continuar e pedir o nome da lista
     nome_lista="FORA-CGNAT" # Nome pré-definido para a lista
 
-    # Diálogo para preencher o nome da lista
+    # Adicionar diálogo para preencher o nome da lista
     nome_lista=$(dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
         --title "CGNATGEN - Gerador de Script CGNAT" \
         --inputbox "
@@ -150,7 +186,8 @@ else
 	echo "add chain=srcnat action=jump jump-target=CGNAT src-address=$ipprivado/$mascaraprivado comment=\"CGNATGEN - Do bloco privado: $ipprivado/$mascaraprivado para o(s) bloco(s) publico(s): $entrada - Desative essa regra para desativar o CGNAT\"" >> $arquivo 
 	echo "" >> $arquivo
 fi
-#  Dialog de insersão do IP Publico e calculos
+
+#  FIM
     entrada=$( dialog --stdout --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao" \
                 --title "CGNATGEN - Gerador de Script CGNAT" \
                 --inputbox "
@@ -206,7 +243,7 @@ fi
                     --backtitle "# GERADOR DE CGNAT - Autor: $autor - Versão: $versao"   \
                     --title "CGNATGEN - Gerador de Script CGNAT" \
                     --infobox "
-                Gerando o arquivo $arquivo
+                Gerando o arquivo [ $arquivo ]
                 Quantidade de IPs públicos: $quantidadetotalpublico
                 Quantidade de IPs privados: $quantidadeprivado
                 Relação entre público e privado: 1:$relacao
@@ -214,10 +251,12 @@ fi
                 Quantidade de regras criadas: $(( ($quantidadetotalpublico * 2) + ($quantidadeprivado * 2) + 1 ))
                 $aviso1
                 $aviso2
-		Script Desenvolvido por: $autor
-		Versão: [$versao]
+		Script Desenvolvido por: $autor - Versão: [$versao] OS: $veros
 
-		Dica: Use IPv6 no Concentrador ;)" 17 60
+		Envie o arquivo para o RouterOS e digite no terminal:
+		import file=$arquivo
+
+		Dica: Use IPv6 no Concentrador" 18 70
         mascarajump=$((32-($mascaratotalpublico-$mascaraprivado)))
         IFS='.' read -r ippubpo ippubso ippubto ippubqo <<<"$ippublico"
         comecoporta=1501
@@ -285,6 +324,13 @@ ippubqo=$(( $ippubqo + 1 ))
             y=$(( $y + 1 ))
         done
     done
+# Informativo no LOG
+echo "" >> $arquivo
+echo "# Alertas no Log do RouterOS" >> $arquivo
+echo ":log error message=\">> Arquivo ($arquivo) importado com sucesso.\"" >> $arquivo
+echo ":log error message=\">> CGNATGen - Gerador de Script CGNAT para $veros.\"" >> $arquivo
+echo ":log warning message=\">> IP 10.10.10.1/30 adicionado na interface: $nome_int_enlace\"" >> $arquivo
+echo ":log warning message=\">> Configure o IP 10.10.10.2/30 na interface de uplink do seu concentrador.\"" >> $arquivo
     exit
 done
 else
