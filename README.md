@@ -23,11 +23,16 @@ O arquivo gerado deverá ser enviado e importado para o RouterOS.
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/22d4828a-7f5d-4539-b083-1f6f08967325)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/4f72bc9a-fcec-4843-8e20-5b407375b052)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/ae231b16-cbe0-4a53-9198-7f633b63e2cb)
-![image](https://github.com/lerc07/cgnatgen/assets/151892038/3f065729-7922-4411-b2ba-05783ec4be15)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/fdac13f2-6528-49dc-8530-7a3e9ffe5f74)
 
 
 Realizado algumas modificações das Dialogs para melhor visualisar na shell.
+
+Lembrando que o arquivo gerado deve ser enviado para o RouterOS e importado usando:
+
+/import file=arquivo.rsc
+
+---------------------------------------------
 
 Agradecimento especial ao Autor: Daniel Hoisel, por ter disponibilizado a ferramenta para uso. 
 
