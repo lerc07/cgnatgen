@@ -9,6 +9,9 @@ A ferramenta foi adaptada para uma necessidade pessoal, disponibilizando e flexi
 - Ativar o NoTrack (Raw)
 - Ativar uma Address-List para não sair pelos IPs do CGNAT (Usar rota padrão)
 - Regra de Mascaramento ignorando o range de IPs do CGNAT.
+- Adicionado a opção de configurar um ip de enlace entre o CGNAT/Concentrador (10.10.10.1/30)
+
+O arquivo gerado deverá ser enviado e importado para o RouterOS.
 
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/d040d3be-9629-4b00-bc98-b84c430f14f3)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/f9c09980-edab-42e0-a3d7-d25842bad82f)
@@ -20,6 +23,7 @@ A ferramenta foi adaptada para uma necessidade pessoal, disponibilizando e flexi
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/22d4828a-7f5d-4539-b083-1f6f08967325)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/4f72bc9a-fcec-4843-8e20-5b407375b052)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/ae231b16-cbe0-4a53-9198-7f633b63e2cb)
+![image](https://github.com/lerc07/cgnatgen/assets/151892038/3f065729-7922-4411-b2ba-05783ec4be15)
 ![image](https://github.com/lerc07/cgnatgen/assets/151892038/fdac13f2-6528-49dc-8530-7a3e9ffe5f74)
 
 
