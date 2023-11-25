@@ -2,33 +2,36 @@
 # Desenvolvido por Luis Ramalho + ChatGPT
 # Projeto Original de Daniel Hoisel
 # Licenciado sob a GPL 3.0
+
 versao="1.0"
 autor="LeRc"
 veros="RouterOS v6.x"
 titulo1="# GERADOR DE CGNAT - Autor: $autor - Versão: $versao"
 titulo2="[ CGNATGen - Gerador de Script CGNAT ]"
 
-# Função para verificar e instalar o pacote se estiver ausente
-verificar_e_instalar_pacote() {
-    if ! dpkg -l "$1" &>/dev/null; then
-        echo "Pacote $1 não está instalado. Instalando..."
-        sudo apt update
-        sudo apt install -y "$1"
-    fi
+verificar_e_instalar_dependencias() {
+    local dependencies=("ipcalc" "dialog")
+    for dependency in "${dependencies[@]}"; do
+        if ! command -v "$dependency" &>/dev/null; then
+            echo "O pacote $dependency não está instalado. Instalando..."
+            case $dependency in
+                "dialog")
+                    sudo apt update
+                    sudo apt install -y dialog
+                    ;;
+                "ipcalc")
+                    sudo apt update
+                    sudo apt install -y ipcalc
+                    ;;
+                *)
+                    echo "Pacote $dependency não reconhecido."
+                    ;;
+            esac
+        fi
+    done
 }
-
-# Verificar e instalar dialog
-verificar_e_instalar_pacote "dialog"
-
-# Verificar e instalar ipcalc
-verificar_e_instalar_pacote "ipcalc"
-
-# Verificar se dialog e ipcalc estão instalados antes de continuar
-if ! dpkg -l "dialog" &>/dev/null || ! dpkg -l "ipcalc" &>/dev/null; then
-    echo "Pacotes necessários não estão instalados. Abortando o script."
-    exit 1
-fi
-
+# Verificar e instalar as dependências
+verificar_e_instalar_dependencias
 
 if [[ $1 ]]
 then
