@@ -2,36 +2,33 @@
 # Desenvolvido por Luis Ramalho + ChatGPT
 # Projeto Original de Daniel Hoisel
 # Licenciado sob a GPL 3.0
-
 versao="1.0"
 autor="LeRc"
 veros="RouterOS v6.x"
 titulo1="# GERADOR DE CGNAT - Autor: $autor - Versão: $versao"
 titulo2="[ CGNATGen - Gerador de Script CGNAT ]"
 
-verificar_e_instalar_dependencias() {
-    local dependencies=("ipcalc" "dialog")
-    for dependency in "${dependencies[@]}"; do
-        if ! command -v "$dependency" &>/dev/null; then
-            echo "O pacote $dependency não está instalado. Instalando..."
-            case $dependency in
-                "dialog")
-                    sudo apt update
-                    sudo apt install -y dialog
-                    ;;
-                "ipcalc")
-                    sudo apt update
-                    sudo apt install -y ipcalc
-                    ;;
-                *)
-                    echo "Pacote $dependency não reconhecido."
-                    ;;
-            esac
-        fi
-    done
+# Função para verificar e instalar o pacote se estiver ausente
+verificar_e_instalar_pacote() {
+    if ! dpkg -l "$1" &>/dev/null; then
+        echo "Pacote $1 não está instalado. Instalando..."
+        sudo apt update
+        sudo apt install -y "$1"
+    fi
 }
-# Verificar e instalar as dependências
-verificar_e_instalar_dependencias
+
+# Verificar e instalar dialog
+verificar_e_instalar_pacote "dialog"
+
+# Verificar e instalar ipcalc
+verificar_e_instalar_pacote "ipcalc"
+
+# Verificar se dialog e ipcalc estão instalados antes de continuar
+if ! dpkg -l "dialog" &>/dev/null || ! dpkg -l "ipcalc" &>/dev/null; then
+    echo "Pacotes necessários não estão instalados. Abortando o script."
+    exit 1
+fi
+
 
 if [[ $1 ]]
 then
@@ -41,7 +38,7 @@ else
 fi
 
 # Inicio dos Dialogos
-	entrada=$( dialog --stdout --backtitle "$titulo1" --title "CGNATGEN - (NO NETMAP)" \
+	entradap=$( dialog --stdout --backtitle "$titulo1" --title "CGNATGEN - (NO NETMAP)" \
     --inputbox "$aviso
                 Para definir o nome do arquivo use Ex.: ./cgnatgen.sh arquivo.rsc
                 Caso contratio, será gerado como mk-cgnat.rsc
@@ -50,17 +47,36 @@ fi
 
                 Informe o bloco privado/máscara. Ex.: 100.64.0.0/22" 0 0 "100.64.0.0/22")
 	if which ipcalc >/dev/null; then
-        ipcalc -cbn $entrada | grep Network | cut -f2 -d: | grep $entrada || { dialog --stdout --backtitle "$titulo1" --title "$titulo2" --msgbox "Endereço IP ou de rede inválidos" 0 0; exit; }
+        ipcalc -cbn $entradap | grep Network | cut -f2 -d: | grep $entradap || { dialog --stdout --backtitle "$titulo1" --title "$titulo2" --msgbox "Endereço IP ou de rede inválidos" 0 0; exit; }
     else
         dialog --stdout --sleep 2 --backtitle "$titulo1" --title "$titulo2" --infobox "ipcalc não está instalado. A validação não foi feita" 0 0
     fi
-    IFS='/' read -r ipprivado mascaraprivado <<<"$entrada"
+    IFS='/' read -r ipprivado mascaraprivado <<<"$entradap"
     if [[ $mascaraprivado -gt 25 ]]
 then
         dialog --stdout --msgbox '
 		Quem faz CGNAT com tão poucos IPs?' 8 45
         exit
     fi
+
+# Pergunta IP Publico
+    entrada=$( dialog --stdout --backtitle "$titulo1" \
+                --title "$titulo2" \
+                --inputbox "
+                PORTAS X BLOCO PÚBLICO NECESSÁRIO
+                -----------------------------------
+                0500: /$(( $mascaraprivado + 7 )) = $((2**$((32 - $(($mascaraprivado + 7)))))) IPs
+                1000: /$(( $mascaraprivado + 6 )) = $((2**$((32 - $(($mascaraprivado + 6)))))) IPs
+                2000: /$(( $mascaraprivado + 5 )) = $((2**$((32 - $(($mascaraprivado + 5)))))) IPs
+                4000: /$(( $mascaraprivado + 4 )) = $((2**$((32 - $(($mascaraprivado + 4)))))) IPs
+                8000: /$(( $mascaraprivado + 3 )) = $((2**$((32 - $(($mascaraprivado + 3)))))) IPs
+
+                Informe o(s) bloco(s) público(s), com a máscara.
+                Ex.: 200.200.0.0/25
+                Ex.: 200.200.0.0/26 200.200.1.0/27 200.200.2.0/27
+
+                Obs.: Quando informado mais de um bloco, para efeito do cálculo da quantidade de portas,
+                será computada a quantidade total de IPs, que deve ser potência na base 2." 0 0 "")
 
 # Adicionando diálogo com radiolist para perguntar se deseja informar o nome da interface de uplink
 escolha_interface=$(dialog --stdout --backtitle "$titulo1" \
@@ -82,7 +98,7 @@ if [[ $escolha_interface == "Sim" ]]; then
     if [[ -n $nome_interface ]]; then
 			echo "# MASQUERADE" >> $arquivo
 			echo "/ip firewall nat " >> $arquivo 
-			echo "add action=masquerade chain=src-nat src-address=!$entrada out-interface=$nome_interface" >> $arquivo
+			echo "add action=masquerade chain=src-nat src-address=!$entradap out-interface=$nome_interface" >> $arquivo
 			echo "" >> $arquivo 
 		else
         echo ""
@@ -193,24 +209,7 @@ else
 fi
 
 #  FIM
-    entrada=$( dialog --stdout --backtitle "$titulo1" \
-                --title "$titulo2" \
-                --inputbox "
-                PORTAS X BLOCO PÚBLICO NECESSÁRIO
-                -----------------------------------
-                0500: /$(( $mascaraprivado + 7 )) = $((2**$((32 - $(($mascaraprivado + 7)))))) IPs
-                1000: /$(( $mascaraprivado + 6 )) = $((2**$((32 - $(($mascaraprivado + 6)))))) IPs
-                2000: /$(( $mascaraprivado + 5 )) = $((2**$((32 - $(($mascaraprivado + 5)))))) IPs
-                4000: /$(( $mascaraprivado + 4 )) = $((2**$((32 - $(($mascaraprivado + 4)))))) IPs
-                8000: /$(( $mascaraprivado + 3 )) = $((2**$((32 - $(($mascaraprivado + 3)))))) IPs
 
-                Informe o(s) bloco(s) público(s), com a máscara.
-                Ex.: 200.200.0.0/25
-                Ex.: 200.200.0.0/26 200.200.1.0/27 200.200.2.0/27
-
-                Obs.: Quando informado mais de um bloco, para efeito do cálculo da quantidade de portas,
-                será computada a quantidade total de IPs, que deve ser potência na base 2." 0 0 )
-	
 	quantidadepublico=0
     for blocopublico in ${entrada[*]} 
     do
@@ -249,6 +248,10 @@ fi
                     --title "$titulo2" \
                     --infobox "
                 Gerando o arquivo [ $arquivo ]
+				
+				Bloco de IP Público: $entrada
+				Bloco de IP Pivado: $ipprivado/$mascaraprivado
+				
                 Quantidade de IPs públicos: $quantidadetotalpublico
                 Quantidade de IPs privados: $quantidadeprivado
                 Relação entre público e privado: 1:$relacao
@@ -261,7 +264,7 @@ fi
 		Envie o arquivo para o RouterOS e digite no terminal:
 		import file=$arquivo
 
-		Dica: Use IPv6 no Concentrador" 18 70
+		Dica: Use IPv6 no Concentrador" 18 80
         mascarajump=$((32-($mascaratotalpublico-$mascaraprivado)))
         IFS='.' read -r ippubpo ippubso ippubto ippubqo <<<"$ippublico"
         comecoporta=1501
