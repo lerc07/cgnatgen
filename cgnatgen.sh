@@ -145,13 +145,13 @@ done
 
 # Diálogo para perguntar se deseja informar o nome da interface de uplink
 escolha_interface=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --radiolist "
-	\Z2Deseja informar o nome da interface de uplink?\Zn" 8 65 0 \
+	\Z2Deseja informar o nome da interface de uplink?\Zn" 8 55 0 \
     "Sim" "Sim" ON \
     "Não" "Não" OFF)
 
 if [[ $escolha_interface == "Sim" ]]; then
     nome_interface=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --inputbox "
-	\Z2Digite o nome da interface de uplink:\Zn" 8 65 "sfp.sfpplus1")
+	\Z2Digite o nome da interface de uplink:\Zn" 8 55 "sfp.sfpplus1")
     if [[ -n "$nome_interface" ]]; then
         echo "# MASQUERADE" >> "$arquivo"
         echo "/ip firewall nat" >> "$arquivo" 
@@ -164,13 +164,13 @@ fi
 escolha_ip_enlace=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --radiolist "
 	\Z2Deseja criar um enlace entre o CGNAT e o Concentrador?\Zn
 	\Z2Nesse caso, será inserido o IP \Z110.10.10.1/30\Zn na RB CGNAT
-	e o \Z1IP 10.10.10.2/30\Zn na RB Concentrador." 10 65 0 \
+	e o \Z1IP 10.10.10.2/30\Zn na RB Concentrador." 10 70 0 \
     "Sim" "Sim" ON \
     "Não" "Não" OFF)
 
 if [[ "$escolha_ip_enlace" == "Sim" ]]; then
     nome_int_enlace=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --inputbox "
-	\Z2Digite o nome da interface de enlace:\Zn" 8 65 "sfp.sfpplus2")
+	\Z2Digite o nome da interface de enlace:\Zn" 8 55 "sfp.sfpplus2")
     if [[ -n "$nome_int_enlace" ]]; then
         echo "# IP de Enlace entre o CGNAT/Concentrador" >> "$arquivo"
         echo "/ip address" >> "$arquivo"
@@ -181,9 +181,7 @@ fi
 
 # Nova sequência de telas para ativar regras:
 # Primeira tela: Ativar FastTrack Connection
-ativar_fasttrack=$(dialog --colors --stdout --backtitle "$titulo1" \
-    --title "$titulo2" \
-    --radiolist "
+ativar_fasttrack=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --radiolist "
 \Z2Deseja ativar o FastTrack Connection?\Zn
 
 \Z1O Fasttrack Connection serve para melhorar o desempenho de conexões que não precisam de inspeção detalhada. 
@@ -211,8 +209,8 @@ if [[ "$ativar_fasttrack" == "Sim" ]]; then
        --title "$titulo2" \
        --radiolist "
 	   \Z2Deseja ativar o No Track (RAW)?\Zn
-\Z3
-A função no-track no firewall do MikroTik, especificamente na chain (RAW), serve para desativar 
+	   
+\Z4A função no-track no firewall do MikroTik, especificamente na chain (RAW), serve para desativar 
 o rastreamento de conexões para determinados pacotes antes que sejam processados pelo conntrack.
 O C.T. é importante para diversas funções do firewall, como NAT, filtragem por estado de conexão e QoS. 
 
@@ -229,8 +227,8 @@ Pacotes que não precisam de NAT ou regras de estado = Se você tem pacotes que 
 regras de filtragem com base em estado (como pacotes IPSec ou tráfego entre interfaces específicas),
 pode desativar o rastreamento.
 
-Observação importante:
-Se um pacote passar pelo firewall com no-track, ele não pode ser filtrado pelas chains input, forward 
+\Z1Observação importante:\Zn
+\Z4Se um pacote passar pelo firewall com no-track, ele não pode ser filtrado pelas chains input, forward 
 ou output do firewall, pois não terá um estado de conexão associado.\Zn
 
 \Z1Para evitar problemas, use com cautela e apenas quando realmente necessário.\Zn" 32 110 0 \
@@ -249,8 +247,9 @@ fi
 if [[ "$escolha_ip_enlace" == "Sim" && -n "$nome_int_enlace" ]]; then
     adiciona_rota=$(dialog --colors --stdout --backtitle "$titulo1" \
        --title "$titulo2" \
-       --radiolist "\Z2
-	   Deseja adicionar a Rota de destino \Z1($ipprivado/$mascaraprivado)\Zn para o Gateway (\Z110.10.10.2)\Zn?" 10 65 0 \
+       --radiolist "
+	   \Z2Deseja adicionar a Rota de destino \Z1($ipprivado/$mascaraprivado)\Zn 
+	   \Z2Para o Gateway \Z1(10.10.10.2)\Zn\Z2?\Zn" 11 80 2 \
        "Sim" "Sim" ON \
        "Não" "Não" OFF)
     if [[ "$adiciona_rota" == "Sim" ]]; then
@@ -269,7 +268,8 @@ escolha_address_list=$(dialog --colors --stdout --backtitle "$titulo1" --title "
 
 if [[ $escolha_address_list == "Sim" ]]; then
     nome_lista="FORA-CGNAT"
-    nome_lista=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --inputbox "\Z2Digite o nome da lista (padrão: FORA-CGNAT):\Zn" 8 60 "$nome_lista")
+    nome_lista=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --inputbox "
+	\Z2	Digite o nome da lista\Zn \Z1(Padrão: FORA-CGNAT)\Zn\Z2:\Zn" 8 55 "$nome_lista")
     if [[ -z "$nome_lista" ]]; then
         nome_lista="FORA-CGNAT"
     fi
@@ -286,8 +286,30 @@ else
     echo "" >> "$arquivo"
 fi
 
-# FIM
+# Primeiro: pergunta se o usuário quer Blackhole
+usar_blackhole=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --radiolist "
+\Z1Deseja ativar o Blackhole?\Zn" 10 50 2 \
+  "Sim" "Ativar Blackhole" ON \
+  "Não" "Não ativar Blackhole" OFF)
 
+# Se o usuário escolheu Sim, aí sim pergunta a versão
+if [ "$usar_blackhole" = "Sim" ]; then
+    escolha_blackhole=$(dialog --colors --stdout --backtitle "$titulo1" --title "$titulo2" --radiolist "
+\Z1Selecione a versão do Blackhole:\Zn" 10 60 2 \
+      "v6" "RouterOS v6 (type=blackhole)" ON \
+      "v7" "RouterOS v7 (flag blackhole)" OFF)
+
+    echo "# BLACKHOLE" >> "$arquivo"
+    echo "/ip route"     >> "$arquivo"
+    if [ "$escolha_blackhole" = "v6" ]; then
+        echo "add comment=\"CGNAT Blackhole\" distance=1 dst-address=$entrada type=blackhole" >> "$arquivo"
+    else
+        echo "add comment=\"CGNAT Blackhole\" distance=1 dst-address=$entrada blackhole" >> "$arquivo"
+    fi
+    echo "" >> "$arquivo"
+fi
+
+# FIM
 quantidadepublico=0
 for blocopublico in ${entrada[*]}; do
     IFS='/' read -r ippublico mascarapublico <<<"$blocopublico"
